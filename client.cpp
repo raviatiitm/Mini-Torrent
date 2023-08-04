@@ -74,4 +74,60 @@ void create_user(string buffer, string id, string pass)
     {
         cout << "user already exist" << endl;
     }
+}void login(string buffer)
+{
+    buffer = buffer.substr(0, buffer.size() - 1);
+    int n;
+    n = write(sockfd, buffer.c_str(), strlen(buffer.c_str()));
+    if (n < 0)
+        error("ERROR writing to socket");
+    char buff[256];
+    bzero(buff, 256);
+    n = read(sockfd, buff, 255);
+    if (n < 0)
+        error("ERROR reading from socket");
+    if (strcmp(buff, "Login Successful") == 0)
+    {
+        cout << "Login Successful" << endl;
+    }
+    else if (strcmp(buff, "Already logged in") == 0)
+    {
+        cout << "Already logged in" << endl;
+    }
+    else if (strcmp(buff, "Wrong Password") == 0)
+    {
+        cout << "Wrong Password" << endl;
+    }
+    else
+    {
+        cout << "User is not registered" << endl;
+    }
+}
+
+void logout(string buffer)
+{
+    string r = buffer.substr(0, buffer.size() - 1);
+    buffer = r + " " + UID;
+    cout << buffer << endl;
+    int n;
+    n = write(sockfd, buffer.c_str(), strlen(buffer.c_str()));
+    if (n < 0)
+        error("ERROR writing to socket");
+    char buff[256];
+    bzero(buff, 255);
+    n = read(sockfd, buff, 255);
+    if (n < 0)
+        error("ERROR reading from socket");
+    if (strcmp(buff, "Logout Successful") == 0)
+    {
+        cout << "Logout Successful" << endl;
+    }
+    else if (strcmp(buff, "Already logged out") == 0)
+    {
+        cout << "Already logged out" << endl;
+    }
+    else
+    {
+        cout << "User is not registered" << endl;
+    }
 }
