@@ -677,3 +677,127 @@ void *init_server(void *param)
     }
     return NULL;
 }
+int main(int argc, char *argv[])
+{
+    pthread_t tid;
+    vector<string> v;
+    if (argc < 3)
+    {
+        fprintf(stderr, "usage %s hostname port\n", argv[0]);
+        exit(0);
+    }
+    IP_PORT = argv[1];
+
+    stringstream ss(IP_PORT);
+    while (ss.good())
+    {
+        string sb;
+        getline(ss, sb, ':');
+        v.push_back(sb);
+    }
+    IP = v[0];
+    PORT = atoi(v[1].c_str());
+
+    string line;
+    ifstream readFile(argv[2]);
+    while (getline(readFile, line));
+    readFile.close();
+    vector<string> v1;
+    stringstream st(line);
+    while (st.good())
+    {
+        string sb;
+        getline(st, sb, ':');
+        v1.push_back(sb);
+    }
+    IP_SERVER = v1[0];
+    TRACKER_PORT = stoi(v1[1]);
+
+    // IP_SERVER = argv[2];
+    if (pthread_create(&tid, NULL, init_server, NULL) != 0)
+        printf("Failed to create thread\n");
+
+    ConnectTracker();
+
+    while (true)
+    {
+        vector<string> tokens;
+        string sb2;
+        char buffer[256];
+        cout << "\nCommand : ";
+        bzero(buffer, 256);
+        fgets(buffer, 255, stdin);
+        string cmd = buffer;
+        stringstream ss(cmd);
+        while (ss.good())
+        {
+            getline(ss, sb2, ' ');
+            tokens.push_back(sb2);
+        }
+        string keyword = tokens[0];
+        if (keyword == "create_user")
+            create_user(cmd, tokens[1], tokens[2]);
+        else if (keyword == "login")
+        {
+            login(cmd);
+            loginStatus = true;
+        }
+        else if (strcmp(buffer, "logout\n") == 0)
+        {
+            // cout<<"inside logout"<<endl;
+            logout(cmd);
+
+            loginStatus = false;
+        }
+        else if (keyword == "create_group")
+        {
+            create_group(cmd, tokens[1]);
+        }
+        else if (keyword == "join_group")
+        {
+            join_group(cmd);
+        }
+        else if (keyword == "leave_group")
+        {
+            leave_group(cmd);
+        }
+        else if (keyword == "requests")
+        {
+            pending_list_request(cmd);
+        }
+        else if (keyword == "accept_request")
+        {
+            accept_request(cmd);
+        }
+        else if (strcmp(buffer, "list_groups\n") == 0)
+        {
+            list_groups(cmd);
+        }
+        else if (keyword == "upload_file")
+        {
+            upload_file(cmd);
+        }
+        else if (keyword == "list_files")
+        {
+            list_files(cmd);
+        }
+        else if (keyword == "download_file")
+        {
+            download_file(cmd, tokens[1], tokens[2], tokens[3]);
+        }
+        else if (strcmp(buffer, "show_downloads\n")==0)
+        {
+            if (downloadedfiles.empty())
+                cout << "Downloading history empty." << endl;
+            for (auto l : downloadedfiles)
+            {
+                cout << "[D][" + l.first + "]" + l.second << endl;
+            }
+        }
+        else if (keyword == "stop_share")
+        {
+            stop_sharing(cmd);
+        }
+    }
+    return 0;
+}
